@@ -1,16 +1,16 @@
 spin_manifest_version = 2
 
 [application]
-name = "cloud_start"
-version = "0.1.0"
-authors = ["Fermyon Engineering <engineering@fermyon.com>"]
-description = "Your first Fermyon Cloud application"
+name = "top_cloud"
+version = "0.2.0"
+authors = ["blah28722 <blah28722@gmail.com>"]
+description = "A Fermyon Cloud application"
 
 [[trigger.http]]
 route = "/..."
-component = "cloudstart"
+component = "topcloud"
 
 [component.cloudstart]
-source = "target/wasm32-wasi/release/cloud_start.wasm"
+source = "target/wasm32-wasi/release/top_cloud.wasm"
 [component.cloudstart.build]
 command = "cargo build --target wasm32-wasi --release"
