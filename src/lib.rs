@@ -1,36 +1,76 @@
-use std::str;
 use anyhow::Result;
 use spin_sdk::{
-    http::{IntoResponse, Request, Method, Response},
+    http::{IntoResponse, Request, Response, Params, ResponseBuilder},
     http_component,
 };
-use serde::{Serialize, Deserialize};
 use maud::html;
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Fact {
-    fact: String,
-}
 
 #[http_component]
-async fn topcloud(_req: Request) -> Result<impl IntoResponse> {
-    let req = Request::builder()
-        .method(Method::Get)
-        .uri("https://random-data-api.fermyon.app/animals/json")
-        .build();
-    let res: Response = spin_sdk::http::send(req).await?;
-    let msg: Fact = serde_json::from_slice(res.body()).unwrap();
-    let markup = html! {
+async fn topcloud(req: Request) -> Result<impl IntoResponse> {
+    let mut router = spin_sdk::http::Router::default();
+    router.get("/", hello);
+    router.get("/secret", secret);
+    router.get("/api", api);
+    router.options("/...", process_preflight);
+    Ok(router.handle(req))
+}
+
+fn hello(_req: Request, _params: Params) -> Result<Response>{
+    let msg = html!(
         p {
-            "Hi, did you know that..."
+            "Hello from Spin!"
             br;
-            (msg.fact) "?" 
+            "Did you know..."
+            br;
         }
-        button { "What do I do?" }
-    };
-    Ok(Response::builder()
-        .status(200)
-        .header("content-type", "text/html; charset=utf-8")
-        .body(markup.into_string())
-        .build())
+        button hx-get="https://topcloud-vnlndzcb.fermyon.app/secret" hx-swap="outerHTML" {
+            "This button has a secret?"
+        }
+    );
+    let mut builder = ResponseBuilder::new(200);
+    builder.header("Access-Control-Allow-Origin","*")
+        .body(msg.into_string());
+    Ok(builder.build())
+}
+
+fn secret(_req: Request, _params: Params) -> Result<Response>{
+    let msg = html!(
+        p {
+            "You found the secret!"
+        }
+        button hx-get="https://topcloud-vnlndzcb.fermyon.app/api" hx-swap="outerHTML" {
+            "Claim Your Reward"
+        }
+    );
+    let mut builder = ResponseBuilder::new(200);
+    builder.header("Access-Control-Allow-Origin","*")
+        .body(msg.into_string());
+    Ok(builder.build())
+}
+
+fn api(_req: Request, _params: Params) -> Result<Response>{
+    let msg = html!(
+        strong {
+            p {
+                "Wow! It's a..."
+                br;
+            }
+            (42)
+        }
+    );
+    let mut builder = ResponseBuilder::new(200);
+    builder.header("Access-Control-Allow-Origin","*")
+        .body(msg.into_string());
+    Ok(builder.build())
+}
+
+
+pub(crate) fn process_preflight(_req: Request, _params: Params) -> Result<Response> {
+    let mut builder = ResponseBuilder::new(200);
+    builder.header("Access-Control-Allow-Origin","*")
+        .header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        .header("Access-Control-Allow-Headers", "*");
+
+    Ok(builder.build())
 }
