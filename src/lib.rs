@@ -1,12 +1,20 @@
-use spin_sdk::http::{Request, Response, IntoResponse};
-use spin_sdk::http_component;
+use anyhow::Result;
+use spin_sdk::{
+    http::{IntoResponse, Request, Method, Response},
+    http_component,
+};
 
-/// A simple Spin HTTP component.
 #[http_component]
-async fn top_cloud(_req: Request) -> anyhow::Result<impl IntoResponse> {
-    Ok(Response::builder()
-        .status(200)
-        .header("content-type", "text/plain")
-        .body("Hello, Fermyon")
-        .build())
+async fn topcloud(_req: Request) -> Result<impl IntoResponse> {
+    // Create the outbound request object
+    let req = Request::builder()
+        .method(Method::Get)
+        .uri("https://random-data-api.fermyon.app/animals/json")
+        .build();
+
+    // Send the request and await the response
+    let res: Response = spin_sdk::http::send(req).await?;
+
+    println!("{:?}", res);  // log the response
+    Ok(res)
 }
