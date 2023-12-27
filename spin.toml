@@ -10,7 +10,8 @@ description = "A Fermyon Cloud application"
 route = "/..."
 component = "topcloud"
 
-[component.cloudstart]
+[component.topcloud]
 source = "target/wasm32-wasi/release/topcloud.wasm"
-[component.cloudstart.build]
+allowed_outbound_hosts = [ "https://random-data-api.fermyon.app" ]
+[component.topcloud.build]
 command = "cargo build --target wasm32-wasi --release"
